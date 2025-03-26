@@ -51,19 +51,60 @@ class TripViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='validate')
     def validate_trip(self, request, pk=None):
         """validates the trip based on FMCSA HOS rules
-        Returns warnings if any duty cycles are violated"""
+        Returns warnings if any duty cycles are violated
+        Checks:
+            -Daily driving does not exceed 11 hours
+            -Trip does not violate the 70-hour/8-day cycle
+        Endpoint: GET /api/trips/{trip_id}/validate/
+        """
         trip = self.get_object()
-        # Placeholder: implement actual validation logic
-        validation_result = {
-            "is_valid": True,
-            "warnings": []
-        }
-        # For example, if trip.current_cycle_hours > 70 then flag warning
+        warnings = []
+
+        # Validate daily driving using log entries
+        # Assuming log entries have been generated 
+        log_dates = trip.log_entries.values_list('date', flat=True).distinct()
+        for log_date in log_dates:
+            totals = LogEntry.compute_daily_totals(trip, log_date)
+            driving_duration = totals.get('status_durations', {}).get('driving', timedelta())
+            if driving_duration > timedelta(hours=11):
+                warnings.append(
+                    f"On {log_date}, daily driving duration exceeds 11 hours: {driving_duration}"
+                )
+        # Validate 70 hour/8-day cycle
+        # We use the trip's current_cycle_hours to track the total hours in the current cycle
         if trip.current_cycle_hours > 70:
-            validation_result['is_valid'] = False
-            validation_result['warnings'].append("Current cycle hours exceed 70 hours")
-        
-        return Response(validation_result, status=status.HTTP_200_OK)
+            warnings.append(
+                f"Total hours in the current cycle exceed 70 hours: {trip.current_cycle_hours}"
+            )
+        is_valid = len(warnings) == 0
+
+        return Response({
+            "is_valid": is_valid,
+            "warnings": warnings
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='generate-logs')
+    def generate_logs(self, request, pk=None):
+        """Generates log entries for the trip based on stops and route data
+        Endpoint: POST /api/trips/{trip_id}/generate-logs/
+        """
+        trip = self.get_object()
+
+        try:
+            # Try detailed log generation first
+            try:
+                logs = trip.generate_log_entries_detailed()
+            except Exception as e:
+                # Fallback to simpler log generation
+                logs = trip.generate_log_entries()
+            
+            serialized_logs = LogEntrySerializer(logs, many=True).data
+            return Response({
+                "message": "Logs generated successfully",
+                "logs": serialized_logs
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class StopViewSet(viewsets.ModelViewSet):
     """API endpoint for managing stops within a trip"""
