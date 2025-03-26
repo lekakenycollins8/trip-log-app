@@ -1,4 +1,4 @@
-from rest_frmaework import serializers
+from rest_framework import serializers
 from trips.models import Stop, Trip, LogEntry, Route
 
 class StopSerializer(serializers.ModelSerializer):
@@ -47,4 +47,3 @@ class RouteSerializer(serializers.ModelSerializer):
         model = Route
         fields = ['id', 'trip', 'route_data', 'created_at']
         read_only_fields = ['id', 'created_at']
-        
