@@ -17,7 +17,7 @@ export const getTrip = async (tripId: string) => {
 };
 
 export const createTrip = async (tripData: any) => {
-    const response = await api.post('/trips', tripData);
+    const response = await api.post('/trips/', tripData);
     return response.data;
 };
 

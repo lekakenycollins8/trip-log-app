@@ -6,14 +6,14 @@ class StopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stop
         fields = ['id', 'trip', 'location', 'stop_type', 'order', 'arrival_time', 'departure_time', 'duration']
-        read_only_fields = ['id', 'duration']
+        read_only_fields = ['duration']
 
 class LogEntrySerializer(serializers.ModelSerializer):
     """Serializer for log entry model"""
     class Meta:
         model = LogEntry
         fields = ['id', 'trip', 'date', 'status', 'start_time', 'end_time', 'duration', 'remarks']
-        read_only_fields = ['id', 'duration']
+        read_only_fields = ['duration']
 
     def validate(self, data):
         """Ensures that the log entries for a day do not exceed 24 hours"""
@@ -38,7 +38,7 @@ class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
         fields = ['id', 'current_location', 'pickup_location', 'dropoff_location', 'current_cycle_hours', 'estimated_distance', 'estimated_duration', 'status', 'created_at', 'updated_at', 'stops', 'log_entries']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
 class RouteSerializer(serializers.ModelSerializer):
     """Serializer for route model"""
@@ -46,4 +46,4 @@ class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = ['id', 'trip', 'route_data', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['created_at']
