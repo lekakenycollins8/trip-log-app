@@ -3,10 +3,10 @@ from rest_framework import routers
 from .views import TripViewSet, StopViewSet, LogEntryViewSet, RouteViewSet
 
 router = routers.DefaultRouter()
-router.register(r'trips', TripViewSet)
-router.register(r'stops', StopViewSet)
-router.register(r'log-entries', LogEntryViewSet)
-router.register(r'routes', RouteViewSet)
+router.register(r'trips', TripViewSet, 'trip')
+router.register(r'stops', StopViewSet, 'stop')
+router.register(r'log-entries', LogEntryViewSet, 'log-entry')
+router.register(r'routes', RouteViewSet, 'route')
 
 urlpatterns = [
     path('', include(router.urls)),
