@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useCreateTrip } from "@/hooks/useTripData"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Loader2, AlertCircle, MapPin, TruckIcon, Clock } from "lucide-react"
 import { geocodeLocation } from "@/lib/mapbox"
 
-export default function HomePage() {
+export default function NewTripPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
@@ -82,9 +82,9 @@ export default function HomePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">ELD Trip Planner</h1>
-        <p className="text-gray-600">Plan your route with HOS compliance in mind</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Create New Trip</h1>
+        <p className="text-gray-600">Enter trip details to generate a route and ELD logs</p>
       </div>
 
       {error && (
@@ -97,8 +97,8 @@ export default function HomePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Plan Your Trip</CardTitle>
-          <CardDescription>Enter your trip details to generate a route and ELD logs</CardDescription>
+          <CardTitle>Trip Details</CardTitle>
+          <CardDescription>All fields are required to calculate your route and generate compliant logs</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -174,15 +174,19 @@ export default function HomePage() {
           </form>
         </CardContent>
 
-        <CardFooter>
-          <Button type="submit" form="trip-form" className="w-full" disabled={createTripMutation.isPending}>
+        <CardFooter className="flex justify-between">
+          <Button variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
+
+          <Button type="submit" form="trip-form" disabled={createTripMutation.isPending}>
             {createTripMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Creating Trip...
               </>
             ) : (
-              "Plan Trip"
+              "Create Trip"
             )}
           </Button>
         </CardFooter>

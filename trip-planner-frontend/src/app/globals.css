@@ -1,3 +1,165 @@
+@import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --primary: 45 100% 50%; /* Vibrant gold */
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 142 90% 45%; /* Vibrant green */
+    --secondary-foreground: 60 9.1% 97.8%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --accent: 45 100% 50%; /* Match primary */
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 45 100% 50%; /* Match primary */
+    --radius: 0.5rem;
+    --button-primary: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+    --button-secondary: linear-gradient(90deg, hsl(var(--secondary)) 0%, hsl(var(--secondary) / 0.8) 100%);
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 60 9.1% 97.8%;
+    --card: 20 14.3% 4.1%;
+    --card-foreground: 60 9.1% 97.8%;
+    --popover: 20 14.3% 4.1%;
+    --popover-foreground: 60 9.1% 97.8%;
+    --primary: 45 100% 50%; /* Vibrant gold */
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 142 90% 45%; /* Vibrant green */
+    --secondary-foreground: 60 9.1% 97.8%;
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 60 9.1% 97.8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 12 6.5% 15.1%;
+    --input: 12 6.5% 15.1%;
+    --ring: 45 100% 50%; /* Match primary */
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Custom styles for the ELD Trip Planner */
+.mapboxgl-map {
+  font-family: inherit;
+}
+
+/* Print styles for log sheets */
+@media print {
+  body {
+    background: white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ensure log sheet fits on page */
+  .log-sheet {
+    page-break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+}
+
+/* ELD Log visualization styles */
+.eld-grid {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  height: 200px;
+  border: 1px solid #e2e8f0;
+}
+
+.eld-grid-header {
+  grid-row: 1;
+  grid-column: 1 / span 24;
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.eld-grid-hour {
+  text-align: center;
+  font-size: 0.7rem;
+  padding: 2px 0;
+  border-right: 1px solid #e2e8f0;
+}
+
+.eld-grid-row {
+  display: flex;
+  align-items: center;
+  padding-left: 0.5rem;
+  font-size: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.eld-grid-row-off-duty {
+  grid-row: 2;
+  grid-column: 1 / span 24;
+}
+
+.eld-grid-row-sleeper {
+  grid-row: 3;
+  grid-column: 1 / span 24;
+}
+
+.eld-grid-row-driving {
+  grid-row: 4;
+  grid-column: 1 / span 24;
+}
+
+.eld-grid-row-on-duty {
+  grid-row: 5;
+  grid-column: 1 / span 24;
+}
+
+.eld-log-entry {
+  position: absolute;
+  height: 30px;
+  z-index: 10;
+}
+
+.eld-log-entry-off-duty {
+  background-color: #10b981;
+  border: 1px solid #059669;
+}
+
+.eld-log-entry-sleeper {
+  background-color: #3b82f6;
+  border: 1px solid #2563eb;
+}
+
+.eld-log-entry-driving {
+  background-color: #ef4444;
+  border: 1px solid #dc2626;
+}
+
+.eld-log-entry-on-duty {
+  background-color: #f59e0b;
+  border: 1px solid #d97706;
+}

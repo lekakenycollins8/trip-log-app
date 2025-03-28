@@ -1,27 +1,20 @@
-// src/app/layout.tsx
-"use client";
-import React from "react";
-import Sidebar from "@/components/Sidebar";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "./globals.css"
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import ClientLayout from "./ClientLayout"
 
-// Create a client
-const queryClient = new QueryClient();
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "ELD Trip Planner",
+  description: "Plan your trips with ELD compliance",
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  return (
-    <html lang="en">
-      <body className="flex">
-        <QueryClientProvider client={queryClient}>
-          {/* Sidebar occupies a fixed portion of the screen */}
-          <Sidebar />
-          {/* Main content area */}
-          <main className="flex-1 p-4">{children}</main>
-        </QueryClientProvider>
-      </body>
-    </html>
-  );
+  return <ClientLayout>{children}</ClientLayout>
 }

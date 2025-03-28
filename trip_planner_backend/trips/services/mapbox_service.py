@@ -18,9 +18,9 @@ class MapboxService:
             raise Exception("Mapbox API key not found/ Not configured")
         
         # Build coordinate string: origin;waypoint1;waypoint2;destination (Mapbox expects lng,lat)
-        coords = [f"{origin[1]},{origin[0]}"] # lng,lat
+        coords = [f"{origin[1]},{origin[0]}"]  # lng,lat
         if waypoints:
-            coords += [f"{waypoint[1]},{waypoint[0]}" for waypoint in waypoints] # lng,lat
+            coords += [f"{waypoint[1]},{waypoint[0]}" for waypoint in waypoints]  # lng,lat
         coords.append(f"{destination[1]},{destination[0]}") # lng,lat
         coordinates = ";".join(coords)
 
