@@ -47,3 +47,7 @@ class RouteSerializer(serializers.ModelSerializer):
         model = Route
         fields = ['id', 'trip', 'route_data', 'created_at']
         read_only_fields = ['created_at']
+
+class GenerateLogsSerializer(serializers.Serializer):
+    """Empty serializer for log generation endpoint"""
+    pass

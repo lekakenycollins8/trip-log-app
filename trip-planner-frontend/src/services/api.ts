@@ -37,14 +37,14 @@ export const getStops = async (tripId: string) => {
     return response.data;
 }
 
-export const createStop = async (stopData: any) => {
-    const response = await api.post('/stops', stopData);
+export const createStop = async (tripId: string, stopData: any) => {
+    const response = await api.post(`/stops/?trip=${tripId}`, stopData);
     return response.data;
 }
 
 // Log Entry Endpoints
 export const getLogs = async (tripId: string) => {
-    const response = await api.get(`/log-entries/?tripId=${tripId}`);
+    const response = await api.get(`/log-entries/?trip=${tripId}`);
     return response.data;
 }
 

@@ -49,17 +49,19 @@ export default function TripMap({ trip, stops }: TripMapProps) {
         </Source>
       )}
       {stops &&
-        stops.map((stop) => (
-          <Marker
-            key={stop.id}
-            latitude={stop.location.coordinates.lat}
-            longitude={stop.location.coordinates.lng}
-          >
-            <div className="bg-blue-500 text-white rounded-full p-1 text-xs">
-              {stop.stop_type[0].toUpperCase()}
-            </div>
-          </Marker>
-        ))}
+              stops.map((stop) => (
+                stop.location && stop.location.coordinates && stop.location.coordinates.lat ? (
+                  <Marker
+                    key={stop.id}
+                    latitude={stop.location.coordinates.lat}
+                    longitude={stop.location.coordinates.lng}
+                  >
+                    <div className="bg-blue-500 text-white rounded-full p-1 text-xs">
+                      {stop.stop_type[0].toUpperCase()}
+                    </div>
+                  </Marker>
+                ) : null
+              ))}
     </Map>
   );
 }

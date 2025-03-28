@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCreateTrip } from "@/hooks/useTripData";
 import { Button } from "@/components/ui/button";
 
-const MAPBOX_ACCESS_TOKEN = process.env.NEXT_SECRET_MAPBOX_TOKEN
+const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
 async function geocodeLocation(address: string) {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
@@ -15,12 +15,13 @@ async function geocodeLocation(address: string) {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    if (data.features.length > 0) {
+    console.log("Geocoding response:", data);
+    if (data && data.features && data.features.length > 0) {
       const [lng, lat] = data.features[0].center;
       return { lat, lng };
     }
   } catch (error) {
-    console.error("Geocoding error:", error);
+    console.error("Geocoding error for address:", address, error);
   }
   return { lat: 0, lng: 0 }; // Default coordinates if geocoding fails
 }

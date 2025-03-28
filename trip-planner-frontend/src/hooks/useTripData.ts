@@ -103,3 +103,13 @@ export const useValidateHOS = (tripId: string) => {
     });
 };
 
+// hook to create stop
+export const useCreateStop = (tripId: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (stopData: any) => createStop(tripId, stopData),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['stops', tripId] });
+        },
+    });
+};

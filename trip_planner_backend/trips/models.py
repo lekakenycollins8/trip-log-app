@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
-from datetime import timedelta
+from datetime import timedelta, datetime, time
+import math
 
 def haversine_distance(coord1, coord2):
     """Calculates the distance between two sets of coordinates in miles"""
@@ -38,10 +39,6 @@ class Trip(models.Model):
     def __str__(self):
         return f"Trip from {self.pickup_location['address']} to {self.dropoff_location['address']}"
 
-    def claculate_route(self):
-        """Calls Mapbox API to get route details and saves estimated distance and duration"""
-        # This function will be implemented in the service layer calling mapbox directions API
-
     def generate_stops(self):
         """Based on distance and regulations, generates fueling and rest stops
         --inserts a 1 hour pickup stop at the pickup location
@@ -65,10 +62,12 @@ class Trip(models.Model):
 
         # Fueling stops every 1000 miles
         if self.estimated_distance:
-            fueling_stop_count = int(self.estimated_distance // 1000)
-            # Assume fueling stops are evenly paced along the route
-            for i in range(1, fueling_stop_count + 1):
-                fueling_location = self.calculate_location_along_route(fraction=i / (fueling_stop_count + 1))
+            miles_driven = 0
+            cumulative_miles = 0
+            for i in range(1, int(self.estimated_distance // 1000) + 1):
+                miles_needed = i * 1000
+                fraction = miles_needed / self.estimated_distance
+                location = self.calculate_location_along_route(fraction)
                 stops.append(Stop(
                     trip=self,
                     location=fueling_location,
@@ -80,9 +79,12 @@ class Trip(models.Model):
         
         # Rest stops every 8 hours
         if self.estimated_duration:
-            rest_break_count = int(self.estimated_duration // 8)
-            for i in range(1, rest_break_count + 1):
-                rest_location = self.calculate_location_along_route(fraction=i / (rest_break_count + 1))
+            hours_driven = 0
+            cumulative_hours = 0
+            for i in range(1, int(self.estimated_duration // 8) + 1):
+                hours_needed = i * 8
+                fraction = hours_needed / self.estimated_duration
+                location = self.calculate_location_along_route(fraction)
                 stops.append(Stop(
                     trip=self,
                     location=rest_location,
@@ -176,6 +178,7 @@ class Trip(models.Model):
         logs = []
         stops = list(self.stops.order_by('order'))
         if not stops:
+            logging.warning("No stops found for trip, using simpler log generation")
             return self.generate_log_entries()
         
         # Calculate total stops duration in hours
@@ -265,7 +268,7 @@ class Trip(models.Model):
         trip_start = datetime.combine(self.created_at.date(), time(8, 0))
         current_day_start = trip_start
         remaining_hours = total_hours
-        for day in range(daycount):
+        for day in range(day_count):
             day_logs = []
             driving_hours = min(11, remaining_hours) if remaining_hours > 11 else remaining_hours
             driving_start = current_day_start
@@ -362,8 +365,8 @@ class LogEntry(models.Model):
     trip = models.ForeignKey(Trip, related_name="log_entries", on_delete=models.CASCADE)
     date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
     duration = models.DurationField(editable=False) # Auto-computed based on start and end time
     remarks = models.TextField(null=True, blank=True)
 
@@ -373,10 +376,11 @@ class LogEntry(models.Model):
             raise ValidationError("Start time must be before end time")
     
     def save(self, *args, **kwargs):
-        """Computes duration before saving"""
-        start = timedelta(hours=self.start_time.hour, minutes=self.start_time.minute)
-        end = timedelta(hours=self.end_time.hour, minutes=self.end_time.minute)
-        self.duration = end - start
+        start_dt = datetime.combine(self.date, self.start_time)
+        end_dt = datetime.combine(self.date, self.end_time)
+        if end_dt < start_dt:
+            end_dt += timedelta(days=1)
+        self.duration = end_dt - start_dt
         super().save(*args, **kwargs)
     
     @classmethod

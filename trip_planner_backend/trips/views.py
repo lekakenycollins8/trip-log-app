@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from trips.models import Trip, Stop, LogEntry, Route
-from trips.serializers import TripSerializer, StopSerializer, LogEntrySerializer, RouteSerializer
+from trips.serializers import TripSerializer, StopSerializer, LogEntrySerializer, RouteSerializer, GenerateLogsSerializer
 from trips.services.mapbox_service import MapboxService, get_coordinates
 
 
@@ -39,6 +39,7 @@ class TripViewSet(viewsets.ModelViewSet):
                 trip=trip,
                 defaults={"route_data": route_data}
             )
+            trip.generate_stops() # Generate stops based on route data
 
             return Response({
                 "message": "Route calculated successfully",
@@ -83,7 +84,7 @@ class TripViewSet(viewsets.ModelViewSet):
             "warnings": warnings
         }, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path='generate-logs')
+    @action(detail=True, methods=['post'], serializer_class=GenerateLogsSerializer, url_path='generate-logs')
     def generate_logs(self, request, pk=None):
         """Generates log entries for the trip based on stops and route data
         Endpoint: POST /api/trips/{trip_id}/generate-logs/
