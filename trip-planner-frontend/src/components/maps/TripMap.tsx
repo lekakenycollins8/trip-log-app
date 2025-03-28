@@ -1,19 +1,13 @@
 // src/components/maps/TripMap.tsx
 "use client";
 import dynamic from "next/dynamic";
-
 import React, { useMemo } from "react";
-const MapComponents = dynamic(
-  () => import('react-map-gl').then(mod => ({
-    default: mod.default,
-    Marker: mod.Marker,
-    Source: mod.Source,
-    Layer: mod.Layer
-  })),
-  { ssr: false }
-);
 
-const { default: Map, Marker, Source, Layer } = MapComponents;
+const Map = dynamic(() => import('react-map-gl'), { ssr: false });
+const Marker = dynamic(() => import('react-map-gl').then(mod => mod.Marker), { ssr: false });
+const Source = dynamic(() => import('react-map-gl').then(mod => mod.Source), { ssr: false });
+const Layer = dynamic(() => import('react-map-gl').then(mod => mod.Layer), { ssr: false });
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface TripMapProps {
   trip: any;

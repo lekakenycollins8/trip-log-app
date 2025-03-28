@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCreateTrip } from "@/hooks/useTripData";
 import { Button } from "@/components/ui/button";
 
-const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+const MAPBOX_ACCESS_TOKEN = process.env.NEXT_SECRET_MAPBOX_TOKEN
 
 async function geocodeLocation(address: string) {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(

@@ -17,11 +17,11 @@ class MapboxService:
         if not access_token:
             raise Exception("Mapbox API key not found/ Not configured")
         
-        # Build coordinate string: origin;waypoint1;waypoint2;destination
-        coords = [f"{origin[0]},{origin[1]}"]
+        # Build coordinate string: origin;waypoint1;waypoint2;destination (Mapbox expects lng,lat)
+        coords = [f"{origin[1]},{origin[0]}"] # lng,lat
         if waypoints:
-            coords += [f"{waypoint[0]},{waypoint[1]}" for waypoint in waypoints]
-        coords.append(f"{destination[0]},{destination[1]}")
+            coords += [f"{waypoint[1]},{waypoint[0]}" for waypoint in waypoints] # lng,lat
+        coords.append(f"{destination[1]},{destination[0]}") # lng,lat
         coordinates = ";".join(coords)
 
         # Build URL parameters
@@ -39,7 +39,7 @@ class MapboxService:
         
         data = response.json()
 
-        if not data.get(routes):
+        if not data.get('routes'): # Check for 'routes' key as a string
             raise Exception("No route for given addresses")
 
         # Return first route from response
