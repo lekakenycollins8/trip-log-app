@@ -5,24 +5,31 @@ import { useLogs, useGenerateLogs, useTrip } from "@/hooks/useTripData"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
-const formatDuration = (duration) => {
+interface DurationObject {
+  hours: number;
+  minutes: number;
+}
+
+type DurationType = DurationObject | string | number;
+
+const formatDuration = (duration: DurationType): string => {
   // If duration is already in seconds
-  let totalSeconds;
+  let totalSeconds: number;
   
-  if (typeof duration === 'object' && duration.hours !== undefined && duration.minutes !== undefined) {
+  if (typeof duration === 'object' && 'hours' in duration && 'minutes' in duration) {
     // It's an object with hours/minutes
     return `${Math.floor(duration.hours)}h ${Math.round(duration.minutes)}m`;
   } else if (typeof duration === 'string' && duration.includes(':')) {
     // It might be a string like "hh:mm:ss"
-    const parts = duration.split(':');
-    const hours = parseInt(parts[0]);
-    const minutes = parseInt(parts[1]);
+    const parts: string[] = duration.split(':');
+    const hours: number = parseInt(parts[0]);
+    const minutes: number = parseInt(parts[1]);
     return `${hours}h ${minutes}m`;
   } else {
     // Treat it as seconds
     totalSeconds = Number(duration);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.round((totalSeconds % 3600) / 60);
+    const hours: number = Math.floor(totalSeconds / 3600);
+    const minutes: number = Math.round((totalSeconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
   }
 }
