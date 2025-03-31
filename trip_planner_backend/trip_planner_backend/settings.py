@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-7won7h*5%1#&&h8atg8oi9qsg)4fi&d)x+t$-$_f5x7aegs^3+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://trip-log-app.onrender.com', 'http://localhost:3000', 'https://trip-log-app.vercel.app']
+ALLOWED_HOSTS = ['trip-log-app.onrender.com', 'localhost', 'trip-log-app.vercel.app']
 
 
 # Application definition
