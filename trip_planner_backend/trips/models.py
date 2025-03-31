@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from datetime import timedelta, datetime, time
@@ -67,13 +67,12 @@ class Trip(models.Model):
             for i in range(1, int(self.estimated_distance // 1000) + 1):
                 miles_needed = i * 1000
                 fraction = miles_needed / self.estimated_distance
-                location = self.calculate_location_along_route(fraction)
+                fueling_location = self.calculate_location_along_route(fraction)
                 stops.append(Stop(
                     trip=self,
                     location=fueling_location,
                     stop_type='fueling',
                     order=order,
-                    duration=timedelta(minutes=30)
                 ))
                 order += 1
         
@@ -84,13 +83,12 @@ class Trip(models.Model):
             for i in range(1, int(self.estimated_duration // 8) + 1):
                 hours_needed = i * 8
                 fraction = hours_needed / self.estimated_duration
-                location = self.calculate_location_along_route(fraction)
+                rest_location = self.calculate_location_along_route(fraction)
                 stops.append(Stop(
                     trip=self,
                     location=rest_location,
                     stop_type='rest',
                     order=order,
-                    duration=timedelta(minutes=30)
                 ))
                 order += 1
         
@@ -154,7 +152,12 @@ class Trip(models.Model):
             "address": f"Interpolated location at {fraction*100:0f}%",
             "coordinates": {"lat": lat, "lng": lng}
         }
-
+        from trips.services.mapbox_service import get_address_from_coordinates
+        address = get_address_from_coordinates({"lat": interp_lat, "lng": interp_lng})
+        return {
+            "address": address,
+            "coordinates": {"lat": interp_lat, "lng": interp_lng}
+        }
 
 
     def validate_stop_schedule(self, stops):
@@ -338,13 +341,27 @@ class Stop(models.Model):
         ('rest', 'Rest'),
     ]
 
+    STATUS_CHOICES = [
+        ('planned', 'Planned'),
+        ('visited', 'Visited'),
+        ('skipped', 'Skipped'),
+    ]
+
     trip = models.ForeignKey(Trip, related_name="stops", on_delete=models.CASCADE)
     location = models.JSONField()
     stop_type = models.CharField(max_length=20, choices=STOP_TYPES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planned')
     order = models.PositiveIntegerField() # Determins sequence of stops
     arrival_time = models.DateTimeField(null=True, blank=True)
     departure_time = models.DateTimeField(null=True, blank=True)
-    duration = models.DurationField(null=True, blank=True) # Duration of stop in hours
+    duration = models.DurationField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.arrival_time and self.departure_time:
+            self.duration = self.departure_time - self.arrival_time
+        elif not self.duration and self.stop_type in ['fueling', 'rest']:
+            self.duration = timedelta(minutes=30)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['order']

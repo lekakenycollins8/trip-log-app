@@ -208,15 +208,17 @@ export default function TripDetailsPage() {
                     <th className="p-2 text-left">Type</th>
                     <th className="p-2 text-left">Location</th>
                     <th className="p-2 text-left">Duration</th>
+                    <th className="p-2 text-left">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {stops.map((stop: {id: string, stop_type: string, location: {address: string}, order: number, duration: number}) => (
+                  {stops.map((stop: {id: string, stop_type: string, location: {address: string}, order: number, duration: number, status: string}) => (
                     <tr key={stop.id} className="border-t">
                       <td className="p-2">{stop.order}</td>
                       <td className="p-2 capitalize">{stop.stop_type}</td>
                       <td className="p-2">{stop.location.address}</td>
                       <td className="p-2">{stop.duration ? `${Math.round(stop.duration / 60)} min` : "N/A"}</td>
+                      <td className="p-2">{stop.status}</td>
                     </tr>
                   ))}
                 </tbody>

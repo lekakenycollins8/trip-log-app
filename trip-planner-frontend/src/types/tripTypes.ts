@@ -20,6 +20,7 @@ export interface Stop {
     arrival_time?: string,
     departure_time?: string,
     duration?: number,
+    status: 'planned' | 'visited' | 'skipped',
 }
 
 export interface LogEntry {

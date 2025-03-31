@@ -58,6 +58,7 @@ class TripViewSet(viewsets.ModelViewSet):
         required_fields = ['current_location', 'dropoff_location']
         for field in required_fields:
             if not getattr(trip, field):
+                print(f"ERROR: Missing required field {field} for trip {trip.id}")
                 return Response(
                     {"error": f"Missing required location: {field}"}, 
                     status=status.HTTP_400_BAD_REQUEST
@@ -65,46 +66,61 @@ class TripViewSet(viewsets.ModelViewSet):
 
         try:
             # Extract coordinates from location JSON
-            origin = get_coordinates(trip.current_location)
-            destination = get_coordinates(trip.dropoff_location)
-            # Optionally use pickup location as waypoint
-            waypoints = [get_coordinates(trip.pickup_location)] if trip.pickup_location else None
             try:
-                # Log detailed coordinate information
-                print(f"Raw Origin: {origin}")
-                print(f"Raw Destination: {destination}")
-                print(f"Raw Waypoints: {waypoints}")
+                origin = get_coordinates(trip.current_location)
+                destination = get_coordinates(trip.dropoff_location)
+                waypoints = [get_coordinates(trip.pickup_location)] if trip.pickup_location else None
+            except Exception as e:
+                print(f"ERROR: Failed to extract coordinates for trip {trip.id}: {str(e)}")
+                print(f"Current location data: {trip.current_location}")
+                print(f"Dropoff location data: {trip.dropoff_location}")
+                print(f"Pickup location data: {trip.pickup_location}")
+                raise
+
+            print(f"INFO: Processing route for trip {trip.id}")
+            print(f"Origin coordinates: {origin}")
+            print(f"Destination coordinates: {destination}")
+            print(f"Waypoint coordinates: {waypoints}")
             
-                # More detailed error handling
+            try:
                 route_data = MapboxService.get_route(origin, destination, waypoints=waypoints)
             except Exception as e:
+                print(f"ERROR: Mapbox API call failed for trip {trip.id}: {str(e)}")
                 return Response({
-                    "error": str(e),
+                    "error": f"Route calculation failed: {str(e)}",
                     "origin": origin,
                     "destination": destination,
                     "waypoints": waypoints
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            
+            # Update trip with route details
+            try:
+                trip.estimated_distance = route_data.get('distance', 0) / 1609.34
+                trip.estimated_duration = route_data.get('duration', 0) / 3600
+                trip.save()
+            except Exception as e:
+                print(f"ERROR: Failed to update trip {trip.id} with route details: {str(e)}")
+                raise
 
-            # update trip with route details (convert meters to miles and seconds to hours)
-            trip.estimated_distance = route_data.get('distance', 0) / 1609.34
-            trip.estimated_duration = route_data.get('duration', 0) / 3600
-            trip.save()
+            # Save route data
+            try:
+                Route.objects.update_or_create(
+                    trip=trip,
+                    defaults={"route_data": route_data}
+                )
+                trip.generate_stops()
+            except Exception as e:
+                print(f"ERROR: Failed to save route data for trip {trip.id}: {str(e)}")
+                raise
 
-            # Save route data in Route model
-            Route.objects.update_or_create(
-                trip=trip,
-                defaults={"route_data": route_data}
-            )
-            trip.generate_stops() # Generate stops based on route data
-
+            print(f"SUCCESS: Route calculated for trip {trip.id}")
             return Response({
                 "message": "Route calculated successfully",
                 "route_data": route_data,
                 "trip": TripSerializer(trip).data
             }, status=status.HTTP_200_OK)
         except Exception as e:
+            print(f"ERROR: Unexpected error for trip {trip.id}: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['get'], url_path='validate')

@@ -54,3 +54,25 @@ def get_coordinates(location_json):
         return (coordinates["lat"], coordinates["lng"])
     else:
         raise Exception("Invalid coordinates in location JSON; Coordinates missing")
+
+def get_address_from_coordinates(coordinates):
+    """Reverse geocodes coordinates to get address using Mapbox API"""
+    url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{coordinates['lng']},{coordinates['lat']}.json?access_token={settings.MAPBOX_API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        features = data.get('features', [])
+        if features:
+            address = features[0].get('place_name', 'Address not found')
+            print(f"get_address_from_coordinates - Coordinates: {coordinates}, Address: {address}")
+            return address
+        else:
+            print(f"get_address_from_coordinates - No features found for coordinates: {coordinates}")
+            return 'Address not found'
+    except requests.exceptions.RequestException as e:
+        print(f"Error reverse geocoding coordinates: {e}")
+        return 'Address not found'
+    print(f"get_address_from_coordinates called with coordinates: {coordinates}")
+    print(f"Mapbox API URL: {url}")
+    print(f"Mapbox API response: {response.text}")
