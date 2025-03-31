@@ -19,8 +19,9 @@ export interface Stop {
     order: number,
     arrival_time?: string,
     departure_time?: string,
-    duration?: number,
+    duration?: string, // Duration is serialized as a string (e.g., "HH:MM:SS")
     status: 'planned' | 'visited' | 'skipped',
+    source: 'generated' | 'manual',
 }
 
 export interface LogEntry {

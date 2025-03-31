@@ -1,12 +1,13 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
-import { X, Home, FileText, Truck, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useQuery } from "@tanstack/react-query"
-import { getTripsList } from "@/services/api"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { X, Home, FileText, Truck, ChevronDown, Trash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
+import { getTripsList, deleteTrip as deleteTripApi } from "@/services/api"
 
 interface SidebarProps {
   isOpen: boolean
@@ -102,6 +103,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                           {trip.pickup_location?.address?.split(",")[0]} to{" "}
                           {trip.dropoff_location?.address?.split(",")[0]}
                         </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-red-500 hover:text-white"
+                          onClick={(e) => {
+                            e.preventDefault(); // Prevent navigation
+                            if (window.confirm("Are you sure you want to delete this trip?")) {
+                              deleteTripApi(trip.id);
+                            }
+                          }}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
                       </Link>
                     ))
                   ) : (

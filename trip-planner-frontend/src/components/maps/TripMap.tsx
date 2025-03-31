@@ -37,7 +37,7 @@ export default function TripMap({ trip, stops }: TripMapProps) {
     if (trip?.route?.route_data) {
       // Make sure we're returning a proper GeoJSON object
       return {
-        type: "Feature",
+        type: "Feature" as const,
         properties: {},
         geometry: trip.route.route_data.geometry,
       }
@@ -64,14 +64,14 @@ export default function TripMap({ trip, stops }: TripMapProps) {
         mapStyle="mapbox://styles/mapbox/streets-v11"
         mapboxAccessToken={mapboxToken}
       >
-        {routeData && (
+        {trip?.route?.route_data && routeData && (
           <Source id="route" type="geojson" data={routeData}>
             <Layer
               id="routeLayer"
               type="line"
               paint={{
-                "line-color": "#3887be",
-                "line-width": 4,
+                "line-color": "#ffd700",
+                "line-width": 8, // Increased line width for better visibility
               }}
             />
           </Source>

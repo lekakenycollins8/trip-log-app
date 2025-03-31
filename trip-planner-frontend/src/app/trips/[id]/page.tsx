@@ -3,10 +3,26 @@
 import type React from "react"
 
 import { useParams, useRouter } from "next/navigation"
-import { useTrip, useStops, useCalculateRoute, useCreateStop } from "@/hooks/useTripData"
+import { useTrip, useStops, useCalculateRoute, useCreateStop, useDeleteTrip } from "@/hooks/useTripData"
 import TripMap from "@/components/maps/TripMap"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
+
+// Helper function to parse duration string (e.g., "HH:MM:SS" or "HH:MM:SS.ffffff") to minutes
+const formatDuration = (durationString?: string): string => {
+  if (!durationString) return "N/A";
+  try {
+    const parts = durationString.split(':');
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+    const seconds = parseFloat(parts[2]); // Keep seconds as float for potential microseconds
+    const totalMinutes = hours * 60 + minutes + Math.round(seconds / 60);
+    return `${totalMinutes} min`;
+  } catch (error) {
+    console.error("Error parsing duration string:", durationString, error);
+    return "Invalid";
+  }
+};
 
 export default function TripDetailsPage() {
   const params = useParams()
@@ -18,6 +34,7 @@ export default function TripDetailsPage() {
   const { data: stops, isLoading: stopsLoading, refetch: refetchStops } = useStops(tripId)
   const calculateRouteMutation = useCalculateRoute(tripId)
   const createStopMutation = useCreateStop(tripId)
+  const deleteTripMutation = useDeleteTrip()
 
   useEffect(() => {
       if (trip && !trip.estimated_distance) {
@@ -27,11 +44,20 @@ export default function TripDetailsPage() {
 
   const handleRecalculateRoute = async () => {
     try {
-      await calculateRouteMutation.mutateAsync()
-      await refetchTrip()
+      await calculateRouteMutation.mutateAsync();
+      await refetchTrip();
     } catch (error) {
-      console.error("Route recalculation failed", error)
+      console.error("Route recalculation failed", error);
     }
+  };
+
+  // Display error message if route calculation fails
+  if (calculateRouteMutation.isError) {
+    return (
+      <div className="text-red-500">
+        Error calculating route. Please try again.
+      </div>
+    );
   }
 
   const handleCreateStop = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -62,6 +88,18 @@ export default function TripDetailsPage() {
       setIsAddingStop(false)
     } catch (error) {
       console.error("Stop creation failed", error)
+    }
+  }
+
+  const handleDeleteTrip = async () => {
+    if (window.confirm("Are you sure you want to delete this trip? This action cannot be undone.")) {
+      try {
+        await deleteTripMutation.mutateAsync(tripId)
+        router.push("/trips") // Redirect to trips list after successful deletion
+      } catch (error) {
+        console.error("Trip deletion failed", error)
+        // Optionally: show a toast notification for the error
+      }
     }
   }
 
@@ -126,6 +164,14 @@ export default function TripDetailsPage() {
               {calculateRouteMutation.isPending ? "Calculating..." : "Calculate Route"}
             </Button>
             <Button onClick={() => router.push(`/trips/${tripId}/logs`)}>View Log Sheet</Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+              variant="destructive"
+              onClick={handleDeleteTrip}
+              disabled={deleteTripMutation.isPending}
+            >
+              {deleteTripMutation.isPending ? "Deleting..." : "Delete Trip"}
+            </Button>
           </div>
         </div>
 
@@ -212,12 +258,12 @@ export default function TripDetailsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {stops.map((stop: {id: string, stop_type: string, location: {address: string}, order: number, duration: number, status: string}) => (
+                  {stops.map((stop: {id: string, stop_type: string, location: {address: string}, order: number, duration?: string, status: string}) => (
                     <tr key={stop.id} className="border-t">
                       <td className="p-2">{stop.order}</td>
                       <td className="p-2 capitalize">{stop.stop_type}</td>
                       <td className="p-2">{stop.location.address}</td>
-                      <td className="p-2">{stop.duration ? `${Math.round(stop.duration / 60)} min` : "N/A"}</td>
+                      <td className="p-2">{formatDuration(stop.duration)}</td>
                       <td className="p-2">{stop.status}</td>
                     </tr>
                   ))}

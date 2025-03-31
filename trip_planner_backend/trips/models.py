@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from datetime import timedelta, datetime, time
 import math
+from trips.services.mapbox_service import get_address_from_coordinates
 
 def haversine_distance(coord1, coord2):
     """Calculates the distance between two sets of coordinates in miles"""
@@ -47,6 +48,10 @@ class Trip(models.Model):
         -- inserts a 30 minute rest stop every 8 hours"""
         # Business logic for automatic stop generation
 
+        
+        # Delete existing generated stops
+        Stop.objects.filter(trip=self, source='generated').delete()
+
         stops = []
         order = 1 #To order steps sequentially
 
@@ -56,7 +61,8 @@ class Trip(models.Model):
             location=self.pickup_location,
             stop_type='pickup',
             order=order,
-            duration=timedelta(hours=1)
+            duration=timedelta(hours=1),
+            source='generated'
         ))
         order += 1
 
@@ -73,6 +79,7 @@ class Trip(models.Model):
                     location=fueling_location,
                     stop_type='fueling',
                     order=order,
+                    source='generated'
                 ))
                 order += 1
         
@@ -89,6 +96,7 @@ class Trip(models.Model):
                     location=rest_location,
                     stop_type='rest',
                     order=order,
+                    source='generated'
                 ))
                 order += 1
         
@@ -98,7 +106,8 @@ class Trip(models.Model):
             location=self.dropoff_location,
             stop_type='dropoff',
             order=order,
-            duration=timedelta(hours=1)
+            duration=timedelta(hours=1),
+            source='generated'
         ))
         order += 1
 
@@ -109,7 +118,6 @@ class Trip(models.Model):
             for stop in stops:
                 stop.save()
         return stops
-    
     def calculate_location_along_route(self, fraction):
         """interpolates location along the route based on the fraction provided.
         Fraction should be between 0 and 1
@@ -141,22 +149,18 @@ class Trip(models.Model):
                 lng2, lat2 = coordinates[i+1]
                 interp_lng = lng1 + t * (lng2 - lng1)
                 interp_lat = lat1 + t * (lat2 - lat1)
+                address = get_address_from_coordinates({"lat": interp_lat, "lng": interp_lng})
                 return {
-                    "address": f"Interpolated location at {fraction*100:0f}%",
+                    "address": address,
                     "coordinates": {"lat": interp_lat, "lng": interp_lng}
                 }
             cumulative += segment_length
         # Fallback return last coordinate incase target_distance is not exactly hit
         lng, lat = coordinates[-1]
-        return {
-            "address": f"Interpolated location at {fraction*100:0f}%",
-            "coordinates": {"lat": lat, "lng": lng}
-        }
-        from trips.services.mapbox_service import get_address_from_coordinates
-        address = get_address_from_coordinates({"lat": interp_lat, "lng": interp_lng})
+        address = get_address_from_coordinates({"lat": lat, "lng": lng})
         return {
             "address": address,
-            "coordinates": {"lat": interp_lat, "lng": interp_lng}
+            "coordinates": {"lat": lat, "lng": lng}
         }
 
 
@@ -355,6 +359,7 @@ class Stop(models.Model):
     arrival_time = models.DateTimeField(null=True, blank=True)
     departure_time = models.DateTimeField(null=True, blank=True)
     duration = models.DurationField(null=True, blank=True)
+    source = models.CharField(max_length=10, choices=[('generated', 'Generated'), ('manual', 'Manual')], default='manual')
 
     def save(self, *args, **kwargs):
         if self.arrival_time and self.departure_time:
@@ -433,5 +438,3 @@ class Route(models.Model):
 
     def __str__(self):
         return f"Route for {self.trip}"
-
-

@@ -5,7 +5,7 @@ class StopSerializer(serializers.ModelSerializer):
     """Serializer for stop model"""
     class Meta:
         model = Stop
-        fields = ['id', 'trip', 'location', 'stop_type', 'status', 'order', 'arrival_time', 'departure_time', 'duration']
+        fields = ['id', 'trip', 'location', 'stop_type', 'status', 'order', 'arrival_time', 'departure_time', 'duration', 'source']
         #read_only_fields = ['duration']
 
 class LogEntrySerializer(serializers.ModelSerializer):

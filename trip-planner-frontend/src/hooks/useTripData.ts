@@ -1,6 +1,6 @@
 // src/hooks/useTripData.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTrip, createTrip, updateTrip, deleteTrip, getStops, createStop, getLogs, generateLogs, calculateRoute, validateHOS } from '../services/api';
+import { getTrip, getTripsList, createTrip, updateTrip, deleteTrip, getStops, createStop, getLogs, generateLogs, calculateRoute, validateHOS } from '../services/api';
 
 /**
  * Custom hook to encapsulate the logic for accessing and updating trip data.
@@ -16,6 +16,15 @@ export const useTrip = (tripId: string) => {
         retry: 2
     });
 };
+
+// Hook to fetch the list of all trips
+export const useTripsList = () => {
+    return useQuery({
+        queryKey: ['trip'],
+        queryFn: () => getTripsList(),
+        retry: 2
+    });
+}
 
 // hook to create new trip
 export const useCreateTrip = () => {
