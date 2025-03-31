@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-7won7h*5%1#&&h8atg8oi9qsg)4fi&d)x+t$-$_f5x7aegs^3+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['trip-log-app.onrender.com', 'localhost', 'https://trip-log-app.vercel.app/']
+ALLOWED_HOSTS = ['https://trip-log-app.onrender.com', 'http://localhost:3000', 'https://trip-log-app.vercel.app/']
 
 
 # Application definition
@@ -138,3 +138,34 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+# Allow requests from your Vercel app
+CORS_ALLOWED_ORIGINS = [
+    "https://trip-log-app.vercel.app/",  # Vercel app URL
+    "http://localhost:3000",  # For local development if needed
+]
+
+# Allow credentials (cookies, authorization headers)
+CORS_ALLOW_CREDENTIALS = True
+
+# Allow all requested headers
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Allow these HTTP methods
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
