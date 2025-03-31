@@ -123,7 +123,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-APPEND_SLASH = True
+APPEND_SLASH = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -140,7 +140,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 # Allow requests from your Vercel app
 CORS_ALLOWED_ORIGINS = [
-    "https://trip-log-app.vercel.app/",  # Vercel app URL
+    "https://trip-log-app.vercel.app",  # Vercel app URL
     "http://localhost:3000",  # For local development if needed
 ]
 
