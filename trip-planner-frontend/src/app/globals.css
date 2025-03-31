@@ -65,26 +65,72 @@ body {
 
 /* Print styles for log sheets */
 @media print {
-  body {
-    background: white;
+
+  .sidebar {
+    display: none;
   }
 
   .no-print {
-    display: none !important;
+    display: none;
+  }
+
+  /* Preserve colored bars in print */
+  .eld-log-entry-off-duty {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #006f4a !important;
+    border: 1px solid #059669 !important;
+  }
+
+  .eld-log-entry-sleeper {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #3b82f6 !important;
+    border: 1px solid #2563eb !important;
+  }
+
+  .eld-log-entry-driving {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #ef4444 !important;
+    border: 1px solid #dc2626 !important;
+  }
+
+  .eld-log-entry-on-duty {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #f59e0b !important;
+    border: 1px solid #d97706 !important;
   }
 
   .print-container {
+    display: block;
     width: 100%;
-    margin: 0;
-    padding: 0;
+    padding: 1rem;
+    background-color: white;
   }
 
-  /* Ensure log sheet fits on page */
-  .log-sheet {
-    page-break-inside: avoid;
-    margin-bottom: 2rem;
+  .print-header {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .print-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .print-header p {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .print-content {
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
 }
+
 
 /* ELD Log visualization styles */
 .eld-grid {

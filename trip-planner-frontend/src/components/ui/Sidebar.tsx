@@ -35,14 +35,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />}
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-40 md:hidden sidebar" onClick={onClose} />}
 
       <aside
         className={`
           w-64 h-full bg-gray-800 text-white fixed left-0 top-0 z-50
-          transition-transform duration-300 ease-in-out
+          transition-transform duration-300 ease-in-out sidebar
           ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-          overflow-y-auto
+          overflow-y-auto sidebar
         `}
       >
         <div className="p-4 flex justify-between items-center border-b border-gray-700">

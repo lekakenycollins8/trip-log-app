@@ -76,21 +76,24 @@ export default function LogSheetPage() {
   if (isLoading) return <div className="flex justify-center items-center h-screen">Loading logs...</div>
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
+    <div className="p-4 max-w-6xl mx-auto print-container">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Trip Log Sheet</h1>
-        <div className="flex gap-2">
-          <Button onClick={handleRegenerateLogs} disabled={generateLogsMutation.isPending}>
+        <h1 className="text-2xl font-bold print-header">Trip Log Sheet</h1>
+        <div className="flex gap-2 no-print">
+          <Button onClick={handleRegenerateLogs} disabled={generateLogsMutation.isPending}          className="no-print">
             {generateLogsMutation.isPending ? "Generating..." : "Generate Logs"}
           </Button>
-          <Button onClick={() => window.print()} variant="outline">
-            Print / Download
-          </Button>
+            <Button onClick={() => window.print()} variant="outline" className="no-print">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4"></path>
+              </svg>
+              Print
+            </Button>
         </div>
       </div>
 
       {trip && (
-        <div className="mb-6 p-4 bg-white rounded-lg shadow">
+        <div className="mb-6 p-4 bg-white rounded-lg shadow print-content">
           <h2 className="text-lg font-semibold mb-2">Trip Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -169,33 +172,50 @@ export default function LogSheetPage() {
 
                     {/* Log entry bars */}
                     
-                                        {logsByDate[activeDate]?.map((log: any, index: number) => {
-                                          if (!log.start_time || !log.end_time) return null;
-                                          const startHour = Number.parseInt(log.start_time.split(":")[0])
-                                          const startMin = Number.parseInt(log.start_time.split(":")[1])
-                                          const endHour = Number.parseInt(log.end_time.split(":")[0])
-                                          const endMin = Number.parseInt(log.end_time.split(":")[1])
-                      const startPercent = ((startHour + startMin / 60) / 24) * 100
-                      const endPercent = ((endHour + endMin / 60) / 24) * 100
-                      const width = endPercent - startPercent
+                    {logsByDate[activeDate]?.map((log: any, index: number) => {
+                      if (!log.start_time || !log.end_time) return null;
+                      
+                      // Calculate horizontal positioning
+                      const startHour = parseInt(log.start_time.split(":")[0]);
+                      const startMin = parseInt(log.start_time.split(":")[1]);
+                      const endHour = parseInt(log.end_time.split(":")[0]);
+                      const endMin = parseInt(log.end_time.split(":")[1]);
+                      
+                      const startPercent = ((startHour + startMin / 60) / 24) * 100;
+                      const endPercent = ((endHour + endMin / 60) / 24) * 100;
+                      const width = endPercent - startPercent;
 
-                      let top = 0
-                      if (log.status === "off_duty") top = 6
-                      else if (log.status === "sleeper") top = 6 + 26
-                      else if (log.status === "driving") top = 6 + 26 * 2
-                      else if (log.status === "on_duty") top = 6 + 26 * 3
+                      // Calculate vertical positioning
+                      const timeMarkersHeight = 24; // h-6 (1.5rem = 24px)
+                      const rowHeight = 26; // Each status row height
+                      let top = timeMarkersHeight;
+
+                      switch (log.status) {
+                        case "off_duty":
+                          top += 0; // First status row
+                          break;
+                        case "sleeper":
+                          top += rowHeight; // Second status row
+                          break;
+                        case "driving":
+                          top += rowHeight * 2; // Third status row
+                          break;
+                        case "on_duty":
+                          top += rowHeight * 3; // Fourth status row
+                          break;
+                      }
 
                       return (
                         <div
                           key={index}
-                          className={`absolute h-6 ${
+                          className={`absolute h-6  ${
                             log.status === "off_duty"
-                              ? "bg-green-200"
-                              : log.status === "sleeper"
+                              ? "bg-green-200 eld-log-entry-off-duty"
+                              : log.status === "sleeper eld-log-entry-sleeper"
                                 ? "bg-blue-200"
                                 : log.status === "driving"
-                                  ? "bg-red-200"
-                                  : "bg-yellow-200"
+                                  ? "bg-red-200 eld-log-entry-on-duty"
+                                  : "bg-yellow-200 eld-log-entry-driving"
                           }`}
                           style={{
                             left: `${startPercent}%`,
@@ -204,7 +224,7 @@ export default function LogSheetPage() {
                           }}
                           title={`${log.start_time} - ${log.end_time}: ${log.status}`}
                         />
-                      )
+                      );
                     })}
                   </div>
                 </div>
