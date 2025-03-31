@@ -13,7 +13,6 @@ class LogEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = LogEntry
         fields = ['id', 'trip', 'date', 'status', 'start_time', 'end_time', 'duration', 'remarks']
-        read_only_fields = ['duration']
 
     def validate(self, data):
         """Ensures that the log entries for a day do not exceed 24 hours"""

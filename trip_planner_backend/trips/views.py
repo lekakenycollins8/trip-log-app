@@ -163,23 +163,62 @@ class TripViewSet(viewsets.ModelViewSet):
         """Generates log entries for the trip based on stops and route data
         Endpoint: POST /api/trips/{trip_id}/generate-logs/
         """
-        trip = self.get_object()
-
         try:
-            # Try detailed log generation first
-            try:
-                logs = trip.generate_log_entries_detailed()
-            except Exception as e:
-                # Fallback to simpler log generation
-                logs = trip.generate_log_entries()
+            trip = self.get_object()
             
+            # Check if trip exists
+            if not trip:
+                return Response(
+                    {"error": "Trip not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Check if route data exists
+            if not hasattr(trip, 'route') or not trip.route:
+                return Response(
+                    {"error": "Route data not found. Please calculate route first."}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            print(f"INFO: Generating logs for trip {trip.id}")
+            
+            try:
+                # Try detailed log generation first
+                logs = trip.generate_log_entries_detailed()
+                print(f"INFO: Generated detailed logs for trip {trip.id}")
+            except Exception as e:
+                print(f"WARNING: Detailed log generation failed for trip {trip.id}: {str(e)}")
+                # Fallback to simpler log generation
+                try:
+                    logs = trip.generate_log_entries()
+                    print(f"INFO: Generated simple logs for trip {trip.id}")
+                except Exception as inner_e:
+                    print(f"ERROR: Simple log generation failed for trip {trip.id}: {str(inner_e)}")
+                    return Response(
+                        {"error": f"Log generation failed: {str(inner_e)}"}, 
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+            
+            if not logs:
+                return Response(
+                    {"error": "No logs were generated"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             serialized_logs = LogEntrySerializer(logs, many=True).data
+            print(f"SUCCESS: Generated {len(logs)} logs for trip {trip.id}")
+            
             return Response({
                 "message": "Logs generated successfully",
                 "logs": serialized_logs
             }, status=status.HTTP_200_OK)
+
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"ERROR: Unexpected error in generate_logs for trip {pk}: {str(e)}")
+            return Response(
+                {"error": "An unexpected error occurred while generating logs"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class StopViewSet(viewsets.ModelViewSet):
     """API endpoint for managing stops within a trip"""

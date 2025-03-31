@@ -5,6 +5,28 @@ import { useLogs, useGenerateLogs, useTrip } from "@/hooks/useTripData"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
+const formatDuration = (duration) => {
+  // If duration is already in seconds
+  let totalSeconds;
+  
+  if (typeof duration === 'object' && duration.hours !== undefined && duration.minutes !== undefined) {
+    // It's an object with hours/minutes
+    return `${Math.floor(duration.hours)}h ${Math.round(duration.minutes)}m`;
+  } else if (typeof duration === 'string' && duration.includes(':')) {
+    // It might be a string like "hh:mm:ss"
+    const parts = duration.split(':');
+    const hours = parseInt(parts[0]);
+    const minutes = parseInt(parts[1]);
+    return `${hours}h ${minutes}m`;
+  } else {
+    // Treat it as seconds
+    totalSeconds = Number(duration);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.round((totalSeconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  }
+}
+
 export default function LogSheetPage() {
   const params = useParams()
   const tripId = params.id as string
@@ -25,7 +47,7 @@ export default function LogSheetPage() {
   // Group logs by date
   const logsByDate = logs
     ? logs.reduce(
-        (acc, log) => {
+        (acc: Record<string, any[]>, log: any) => {
           if (!acc[log.date]) {
             acc[log.date] = []
           }
@@ -139,12 +161,13 @@ export default function LogSheetPage() {
                     </div>
 
                     {/* Log entry bars */}
-                    {logsByDate[activeDate]?.map((log, index) => {
-                      const startHour = Number.parseInt(log.start_time.split(":")[0])
-                      const startMin = Number.parseInt(log.start_time.split(":")[1])
-                      const endHour = Number.parseInt(log.end_time.split(":")[0])
-                      const endMin = Number.parseInt(log.end_time.split(":")[1])
-
+                    
+                                        {logsByDate[activeDate]?.map((log: any, index: number) => {
+                                          if (!log.start_time || !log.end_time) return null;
+                                          const startHour = Number.parseInt(log.start_time.split(":")[0])
+                                          const startMin = Number.parseInt(log.start_time.split(":")[1])
+                                          const endHour = Number.parseInt(log.end_time.split(":")[0])
+                                          const endMin = Number.parseInt(log.end_time.split(":")[1])
                       const startPercent = ((startHour + startMin / 60) / 24) * 100
                       const endPercent = ((endHour + endMin / 60) / 24) * 100
                       const width = endPercent - startPercent
@@ -195,12 +218,14 @@ export default function LogSheetPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {logsByDate[activeDate]?.map((log, index) => (
+                      {logsByDate[activeDate]?.map((log: any, index: number) => (
                         <tr key={index} className="border-t">
                           <td className="p-2 border capitalize">{log.status.replace("_", " ")}</td>
                           <td className="p-2 border">{log.start_time}</td>
                           <td className="p-2 border">{log.end_time}</td>
-                          <td className="p-2 border">{Math.round(log.duration / 60)} min</td>
+                          <td className="p-2 border">
+                            {log.duration ? formatDuration(log.duration) : "Invalid duration"}
+                          </td>
                           <td className="p-2 border">{log.remarks || "-"}</td>
                         </tr>
                       ))}
@@ -214,10 +239,26 @@ export default function LogSheetPage() {
                 <h3 className="text-md font-medium mb-2">Daily Summary</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {["driving", "on_duty", "off_duty", "sleeper"].map((status) => {
-                    const totalMinutes =
-                      logsByDate[activeDate]
-                        ?.filter((log) => log.status === status)
-                        .reduce((sum, log) => sum + log.duration / 60, 0) || 0
+                    const totalMinutes = logsByDate[activeDate]
+                    ?.filter((log: any) => log.status === status)
+                    .reduce((sum: number, log: any) => {
+                      let minutes = 0;
+                      
+                      // Parse duration based on its format
+                      if (typeof log.duration === 'object' && log.duration.hours !== undefined) {
+                        // If it's an object with hours/minutes
+                        minutes = log.duration.hours * 60 + log.duration.minutes;
+                      } else if (typeof log.duration === 'string' && log.duration.includes(':')) {
+                        // If it's a string like "hh:mm:ss"
+                        const parts = log.duration.split(':');
+                        minutes = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                      } else {
+                        // Treat it as seconds
+                        minutes = Number(log.duration) / 60;
+                      }
+                      
+                      return sum + minutes;
+                    }, 0) || 0;
 
                     const hours = Math.floor(totalMinutes / 60)
                     const minutes = Math.round(totalMinutes % 60)
